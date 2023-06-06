@@ -1,0 +1,17 @@
+{% extends "base.html" %} {% block title %}Post Detail{% endblock %} {% block
+content %}
+<h1>{{ post.title }}</h1>
+<p>Author: {{ post.author.full_name }}</p>
+<p>{{ post.content }}</p>
+<div>
+  <a class="btn btn-outline-info" href="/users/{{ post.author.id }}">Cancel</a>
+  <a class="btn btn-primary" href="/posts/{{ post.id }}/edit">Edit</a>
+  <form
+    action="/posts/{{ post.id }}/delete"
+    method="post"
+    style="display: inline"
+  >
+    <input class="btn btn-danger" type="submit" value="Delete" />
+  </form>
+</div>
+{% endblock %}

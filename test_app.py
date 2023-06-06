@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from app import app, db
-from models import User
+from models import User, Post
 
 def setup_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly_test'
@@ -40,11 +40,18 @@ class BloglyTestCase(TestCase):
         self.ctx.push()
         
         User.query.delete()
+        Post.query.delete()
+
         user = User(first_name="Test", last_name="User", image_url="https://img.freepik.com/free-icon/user_318-563642.jpg")
         db.session.add(user)
         db.session.commit()
 
+        post = Post(title="Test Post", content="Test Content", created_by=user.id)
+        db.session.add(post)
+        db.session.commit()
+
         self.user_id = user.id
+        self.post_id = post.id
 
     def tearDown(self):
         """Cleans up after Test instance.
@@ -101,6 +108,44 @@ class BloglyTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertNotIn('Test User', html)
+
+    def test_posts_new(self):
+        """Tests the posts new route"""
+        with self.app.test_client() as client:
+            d = {"title": "New Test Post", "content": "New Test Content"}
+            resp = client.post(f"/users/{self.user_id}/posts/new", data=d, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('New Test Post', html)
+
+    def test_posts_show(self):
+        """Tests the posts show route"""
+        with self.app.test_client() as client:
+            resp = client.get(f"/posts/{self.post_id}")
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('<h1>Test Post</h1>', html)
+
+    def test_posts_edit(self):
+        """Tests the posts edit route"""
+        with self.app.test_client() as client:
+            d = {"title": "Updated Test Post", "content": "Updated Test Content"}
+            resp = client.post(f"/posts/{self.post_id}/edit", data=d, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Updated Test Post', html)
+
+    def test_posts_delete(self):
+        """Tests the posts delete route"""
+        with self.app.test_client() as client:
+            resp = client.post(f"/posts/{self.post_id}/delete", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertNotIn('Test Post', html)
 
 
 

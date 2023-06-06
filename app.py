@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_debugtoolbar import DebugToolbarExtension
-from models import db, connect_db, User
+from models import db, connect_db, User, Post
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -73,3 +73,50 @@ def users_delete(user_id):
     db.session.commit()
 
     return redirect('/users')
+
+@app.route('/users/<int:user_id>/posts/new', methods=['GET', 'POST'])
+def posts_new(user_id):
+    """Create a new post for a user"""
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        post = Post(
+            title=request.form['title'],
+            content=request.form['content'],
+            created_by=user_id
+        )
+        db.session.add(post)
+        db.session.commit()
+
+        return redirect(f'/users/{user_id}')
+
+    return render_template('post_form.html', user=user)
+
+@app.route('/posts/<int:post_id>', methods=['GET'])
+def posts_show(post_id):
+    """Show a post"""
+    post = Post.query.get_or_404(post_id)
+    return render_template('post_detail.html', post=post)
+
+@app.route('/posts/<int:post_id>/edit', methods=['GET', 'POST'])
+def posts_edit(post_id):
+    """Edit a post"""
+    post = Post.query.get_or_404(post_id)
+
+    if request.method == 'POST':
+        post.title = request.form['title']
+        post.content = request.form['content']
+        db.session.commit()
+
+        return redirect(f'/posts/{post_id}')
+
+    return render_template('post_edit.html', post=post)
+
+@app.route('/posts/<int:post_id>/delete', methods=['POST'])
+def posts_delete(post_id):
+    """Delete a post"""
+    post = Post.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+
+    return redirect(f'/users/{post.created_by}')
