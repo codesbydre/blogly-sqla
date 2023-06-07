@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %} {% if edit_mode %} Edit Tag {% else
+%} Add Tag {% endif %} {% endblock %} {% block content %}
+<h1>{% if edit_mode %} Edit Tag {% else %} Add Tag {% endif %}</h1>
+<form method="POST">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input
+      type="text"
+      class="form-control"
+      id="name"
+      name="name"
+      placeholder="Enter tag name"
+      value="{{ tag.name if edit_mode }}"
+    />
+  </div>
+  <div class="d-flex justify-content-end">
+    <button type="submit" class="btn btn-primary mr-2">
+      {% if edit_mode %} Update {% else %} Add {% endif %}
+    </button>
+    {% if edit_mode %}
+    <a href="/tags/{{ tag.id }}" class="btn btn-outline-info">Cancel</a>
+    {% else %}
+    <a href="/tags" class="btn btn-outline-info">Cancel</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

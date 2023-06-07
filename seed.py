@@ -1,5 +1,5 @@
 """Seed file for sample data"""
-from models import User, Post, db
+from models import User, Post, Tag, PostTag, db
 from app import app
 
 
@@ -22,4 +22,18 @@ with app.app_context():
 
     db.session.add_all([post1, post2, post3])
 
+    db.session.commit()
+
+    tag1 = Tag(name='Random')
+    tag2 = Tag(name='Fun')
+    tag3 = Tag(name='Wow')
+    tag4 = Tag(name='Cool')
+
+    db.session.add_all([tag1, tag2, tag3, tag4])
+
+    post_tag1 = PostTag(post_id=post1.id, tag_id=tag1.id)
+    post_tag2 = PostTag(post_id=post2.id, tag_id=tag2.id)
+    post_tag3 = PostTag(post_id=post3.id, tag_id=tag3.id)
+
+    db.session.add_all([post_tag1, post_tag2, post_tag3])
     db.session.commit()

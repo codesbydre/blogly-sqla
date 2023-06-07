@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% block title %} Home {% endblock %} {% block content
+%}
+<h1>Recent Posts</h1>
+
+{% for post in posts %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">
+      <a href="/posts/{{ post.id }}">{{ post.title }}</a>
+    </h5>
+    <h6 class="card-subtitle mb-2 text-muted">
+      By {{ post.author.full_name }} on {{ post.created_at.strftime('%a %b %-d,
+      %Y') }}
+    </h6>
+    <p class="card-text">{{ post.content }}</p>
+    <p class="card-text">
+      <strong>Tags:</strong>
+      <em
+        >{% for tag in post.tags %}
+        <span class="badge badge-secondary">{{ tag.name }}</span>
+        {% endfor %}</em
+      >
+    </p>
+  </div>
+</div>
+{% endfor %}
+
+<div class="mt-3 d-flex justify-content-end">
+  <a href="/users" class="btn btn-info mr-2">Users</a>
+  <a href="/tags" class="btn btn-info">Tags</a>
+</div>
+{% endblock %}

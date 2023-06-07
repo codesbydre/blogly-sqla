@@ -26,6 +26,8 @@ class User(db.Model):
     
     posts = db.relationship('Post', backref='author')
 
+    posts = db.relationship('Post', backref='author', cascade="all, delete-orphan")
+
 class Post(db.Model):
     """Post Model for Blogly"""
 
@@ -36,3 +38,22 @@ class Post(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    # author = db.relationship('User', backref='posts')
+    tags = db.relationship('Tag', secondary='post_tags', backref='posts')
+
+class Tag(db.Model):
+    """Tag Model for Blogly"""
+
+    __tablename__ = "tags"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.Text, unique=True, nullable=False)
+
+class PostTag(db.Model):
+    """Model that joins together Post and Tag"""
+
+    __tablename__ = "post_tags"
+
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), primary_key=True)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), primary_key=True)
