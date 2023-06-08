@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from app import app, db
-from models import User, Post
+from models import User, Post, Tag, PostTag
 
 def setup_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly_test'
@@ -39,8 +39,10 @@ class BloglyTestCase(TestCase):
         self.ctx = self.app.app_context()
         self.ctx.push()
         
-        User.query.delete()
+        PostTag.query.delete()
         Post.query.delete()
+        User.query.delete()
+        Tag.query.delete()
 
         user = User(first_name="Test", last_name="User", image_url="https://img.freepik.com/free-icon/user_318-563642.jpg")
         db.session.add(user)
@@ -50,8 +52,23 @@ class BloglyTestCase(TestCase):
         db.session.add(post)
         db.session.commit()
 
+        tag1 = Tag(name="Tag1")
+        tag2 = Tag(name="Tag2")
+        db.session.add(tag1)
+        db.session.add(tag2)
+        db.session.commit()
+
+        post_tag = PostTag(post_id=post.id, tag_id=tag1.id)
+        db.session.add(post_tag)
+        db.session.commit()
+
         self.user_id = user.id
         self.post_id = post.id
+        self.tag1_id = tag1.id
+        self.tag2_id = tag2.id
+        self.post_tag_post_id = post_tag.post_id
+        self.post_tag_tag_id = post_tag.tag_id
+
 
     def tearDown(self):
         """Cleans up after Test instance.
@@ -146,6 +163,57 @@ class BloglyTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertNotIn('Test Post', html)
+
+    def test_tags_index(self):
+        """Tests the tags index route"""
+        with self.app.test_client() as client:
+            resp = client.get("/tags")
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Tag1', html)
+            self.assertIn('Tag2', html)
+
+    def test_tags_new(self):
+        """Tests the tags new route"""
+        with self.app.test_client() as client:
+            d = {"name": "Tag3"}
+            resp = client.post("/tags/new", data=d, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Tag3', html)
+
+    def test_tags_show(self):
+        """Tests the tags show route"""
+        with self.app.test_client() as client:
+            resp = client.get(f"/tags/{self.tag1_id}")
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Tag1', html)
+
+    def test_tags_edit(self):
+        """Tests the tags edit route"""
+        with self.app.test_client() as client:
+            d = {"name": "Updated Tag1"}
+            resp = client.post(f"/tags/{self.tag1_id}/edit", data=d, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Updated Tag1', html)
+
+    def test_tags_delete(self):
+        """Tests the tags delete route"""
+        with self.app.test_client() as client:
+            resp = client.post(f"/tags/{self.tag1_id}/delete", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertNotIn('Updated Tag1', html)
+
+  
+
 
 
 
